@@ -1,14 +1,21 @@
-import { Module } from '@nestjs/common';
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { ProductsModule } from './products/products.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Product } from './products/entities/product.entity';
-import { Category } from './categories/entities/category.entity';
-import { CategoriesModule } from './categories/categories.module';
+import { AuthModule } from './auth/auth.module';
+import { AuthorsController } from './authors/authors.controller';
 import { AuthorsModule } from './authors/authors.module';
 import { BooksModule } from './books/books.module';
-import { MongooseModule } from '@nestjs/mongoose';
+import { CategoriesModule } from './categories/categories.module';
+import { Category } from './categories/entities/category.entity';
+import { JwtMiddleware } from './jwt.middleware';
+import { Product } from './products/entities/product.entity';
+import { ProductsModule } from './products/products.module';
 
 @Module({
   imports: [
@@ -29,8 +36,19 @@ import { MongooseModule } from '@nestjs/mongoose';
     ),
     AuthorsModule,
     BooksModule,
+    AuthModule,
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
+      playground: false,
+      plugins: [ApolloServerPluginLandingPageLocalDefault()],
+    }),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(JwtMiddleware).forRoutes(AuthorsController);
+  }
+}

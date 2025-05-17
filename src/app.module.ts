@@ -16,6 +16,9 @@ import { Category } from './categories/entities/category.entity';
 import { JwtMiddleware } from './jwt.middleware';
 import { Product } from './products/entities/product.entity';
 import { ProductsModule } from './products/products.module';
+import { GoogleAuthModule } from './auth-passport/google/googleAuth.module';
+import { ConfigModule } from '@nestjs/config';
+import { FacebookAuthModule } from './auth-passport/facebook/facebookAuth.module';
 
 @Module({
   imports: [
@@ -43,6 +46,11 @@ import { ProductsModule } from './products/products.module';
       playground: false,
       plugins: [ApolloServerPluginLandingPageLocalDefault()],
     }),
+    GoogleAuthModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    FacebookAuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],
